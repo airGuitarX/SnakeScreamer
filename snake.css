@@ -1,0 +1,192 @@
+/* Based on Frank Poth's snake demo — restyled for SSnake */
+
+:root {
+  --purple-dark: #301934;
+  --purple-mid: #645394;
+  --purple-light: #9b8fc4;
+  --purple-glow: #c4b5e8;
+  --text-primary: #f4f0fa;
+  --text-muted: #c8bdd8;
+  --surface-elevated: #3d2450;
+  --surface-tile: #4a3560;
+  --accent-apple: #e8c4ff;
+  --shadow: rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  align-content: center;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(100, 83, 148, 0.35), transparent 70%),
+    var(--purple-dark);
+  color: var(--text-primary);
+  display: grid;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  height: 100%;
+  justify-content: center;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  text-align: center;
+  width: 100%;
+}
+
+/* —— Start / menu page —— */
+
+.menu-page {
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.menu {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 28rem;
+  width: 100%;
+}
+
+.menu-eyebrow {
+  color: var(--purple-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.menu-title {
+  font-size: clamp(2.5rem, 10vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.menu-tagline {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.menu-actions {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  margin-top: 0.5rem;
+}
+
+.menu-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.btn {
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.85rem 2.5rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--purple-mid);
+  border: 2px solid var(--purple-glow);
+  box-shadow: 0 8px 24px var(--shadow);
+  color: var(--text-primary);
+}
+
+.btn-primary:hover {
+  background: #7565a8;
+  box-shadow: 0 12px 28px var(--shadow);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* —— Game page —— */
+
+.game-page {
+  align-content: space-around;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr auto;
+  justify-items: center;
+  padding: 1rem;
+}
+
+.game-header {
+  align-items: center;
+  display: grid;
+  gap: 0.25rem;
+  width: min(100%, 520px);
+}
+
+.game-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.back-link {
+  color: var(--purple-light);
+  font-size: 0.9rem;
+  justify-self: start;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+}
+
+.score {
+  color: var(--purple-glow);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+canvas {
+  align-self: center;
+  background: var(--surface-elevated);
+  border: 2px solid var(--purple-mid);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px var(--shadow);
+  display: block;
+  justify-self: center;
+  max-height: min(80dvh, 80vw);
+  max-width: min(92vw, 520px);
+}
+
+.game-footer {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 28rem;
+  padding: 0 0.5rem 1rem;
+}
+
+.game-footer-note {
+  color: var(--purple-light);
+  font-size: 0.8rem;
+}
+
+.hideable {
+  display: grid;
+}
