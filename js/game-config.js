@@ -11,7 +11,7 @@ window.gameConfig = {
 
   game: {
     defaultMode: "normal",
-    testMode: true,
+    testMode: false,
     modeDefaults: {
       hardMode: false,
       megaMode: false,
