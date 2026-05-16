@@ -82,6 +82,39 @@ body {
   margin-top: 0.5rem;
 }
 
+.mode-panel {
+  display: grid;
+  gap: 0.75rem;
+  justify-self: center;
+  max-width: 20rem;
+  width: 100%;
+}
+
+.btn-mode {
+  background: transparent;
+  border: 2px solid var(--purple-mid);
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.btn-mode:hover {
+  background: rgba(100, 83, 148, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-mega-mode {
+  background: linear-gradient(135deg, #ffcf5a, #ff5d9e 52%, #8f6bff);
+  border-color: #ffe9a8;
+  box-shadow: 0 12px 32px rgba(255, 93, 158, 0.32);
+  color: #241229;
+  font-size: 1.08rem;
+}
+
+.btn-mega-mode:hover {
+  background: linear-gradient(135deg, #ffe07a, #ff75ad 52%, #a586ff);
+  box-shadow: 0 16px 40px rgba(255, 93, 158, 0.42);
+}
+
 .menu-hint {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -277,6 +310,12 @@ canvas {
 
 .game-over-record.hidden {
   display: none;
+}
+
+.game-over-mode {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .win-picture {

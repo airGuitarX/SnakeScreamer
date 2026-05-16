@@ -15,8 +15,13 @@
         成为扭力达？就在今天
       </p>
 
+      <section class="mode-panel" data-i18n-aria="modeOptionsAria" aria-label="模式选项">
+        <a class="btn btn-mode" href="game.html" data-start-mode="normal" data-i18n="modeNormal">普通模式</a>
+        <a class="btn btn-mode" href="game.html" data-start-mode="hard" data-i18n="modeHard">困难模式</a>
+        <a class="btn btn-mode btn-mega-mode" href="game.html" data-start-mode="mega" data-i18n="modeMega">Mega模式</a>
+      </section>
+
       <nav class="menu-actions" data-i18n-aria="menuActionsAria" aria-label="游戏选项">
-        <a class="btn btn-primary" href="game.html" data-i18n="menuStart">开始</a>
         <button
           type="button"
           class="btn btn-lang"
@@ -32,5 +37,7 @@
     </main>
 
     <script src="js/i18n.js" type="text/javascript"></script>
+    <script src="js/game-config.js" type="text/javascript"></script>
+    <script src="js/game-modes.js" type="text/javascript"></script>
   </body>
 </html>

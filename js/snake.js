@@ -13,6 +13,7 @@
     scoreEl: null,
     highEl: null,
     recordEl: null,
+    modeEl: null,
 
     getHighScore: function () {
       return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || "0", 10);
@@ -37,6 +38,10 @@
         this.recordEl.classList.remove("hidden");
       } else {
         this.recordEl.classList.add("hidden");
+      }
+
+      if (this.modeEl && window.gameModes) {
+        this.modeEl.textContent = window.gameModes.modeSummary();
       }
 
       game.snake.vector_x = game.snake.vector_y = 0;
@@ -179,6 +184,25 @@
       }
     },
 
+    drawMegaRevealTileAt: function (ctx, index, now) {
+      var pos = this.tileXY(index);
+      var visual = anim.getMegaRevealTileTransform(now);
+      var inset = Math.max(3, Math.floor(game.world.tile_size * 0.08));
+      var size = game.world.tile_size - inset * 2;
+
+      ctx.save();
+      ctx.globalAlpha = visual.alpha;
+      ctx.fillStyle = visual.fill;
+      ctx.shadowColor = visual.stroke;
+      ctx.shadowBlur = 16;
+      ctx.fillRect(pos.x + inset, pos.y + inset, size, size);
+      ctx.globalAlpha = Math.min(1, visual.alpha + 0.2);
+      ctx.strokeStyle = visual.stroke;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(pos.x + inset, pos.y + inset, size, size);
+      ctx.restore();
+    },
+
     render: function (now) {
       var ts = game.world.tile_size;
       var buf = this.buffer;
@@ -219,6 +243,10 @@
         if (foodType) {
           display.drawFoodAt(buf, index, foodType, now);
         }
+      }
+
+      if (game.isOnMegaRevealTile()) {
+        this.drawMegaRevealTileAt(buf, game.snake.head_index, now);
       }
 
       total = game.snake.segment_indices.length;
@@ -326,6 +354,7 @@
     },
 
     accumulated_time: 0,
+    last_speedup_time: 0,
     time_step: assets.START_TIME_STEP,
 
     getFoodDef: function (type) {
@@ -334,6 +363,10 @@
 
     chooseFoodType: function () {
       var roll = Math.random();
+
+      if (assets.MEGA_MODE) {
+        return "mega";
+      }
 
       if (roll < assets.MEGA_FOOD_CHANCE) {
         return "mega";
@@ -427,7 +460,7 @@
       foodRow = Math.floor(this.food.index / this.world.columns);
 
       if (
-        Math.abs(headCol - foodCol) + Math.abs(headRow - foodRow) === 1 &&
+        this.shouldRevealMegaFood(headCol, headRow, foodCol, foodRow) &&
         !this.food.isWin
       ) {
         this.food.revealed = true;
@@ -435,10 +468,48 @@
       }
     },
 
+    shouldRevealMegaFood: function (headCol, headRow, foodCol, foodRow) {
+      return window.gameRules.shouldRevealMegaFood({
+        hardMode: assets.HARD_MODE,
+        headCol: headCol,
+        headRow: headRow,
+        foodCol: foodCol,
+        foodRow: foodRow,
+        vectorX: this.snake.vector_x,
+        vectorY: this.snake.vector_y,
+      });
+    },
+
+    isOnMegaRevealTile: function () {
+      var headCol;
+      var headRow;
+      var foodCol;
+      var foodRow;
+
+      headCol = this.snake.head_index % this.world.columns;
+      headRow = Math.floor(this.snake.head_index / this.world.columns);
+      foodCol = this.food.index % this.world.columns;
+      foodRow = Math.floor(this.food.index / this.world.columns);
+
+      return window.gameRules.isOnMegaRevealTile({
+        hardMode: assets.HARD_MODE,
+        foodType: this.food.type,
+        foodIndex: this.food.index,
+        foodClearing: this.food.clearing,
+        headCol: headCol,
+        headRow: headRow,
+        foodCol: foodCol,
+        foodRow: foodRow,
+        vectorX: this.snake.vector_x,
+        vectorY: this.snake.vector_y,
+      });
+    },
+
     clearMegaFood: function (now) {
       var clearedIndex = this.food.index;
       var clearedType = this.food.type;
 
+      this.awardFoodScore(clearedType);
       this.food.index = -1;
       this.food.revealed = false;
       this.food.revealedAt = 0;
@@ -452,9 +523,13 @@
 
     applyFoodEffect: function (type) {
       var def = this.getFoodDef(type);
-      this.score += def.score;
+      this.awardFoodScore(type);
       this.time_step = Math.max(def.minStep, this.time_step - def.speedDelta);
       return def.segmentIcon;
+    },
+
+    awardFoodScore: function (type) {
+      this.score += this.getFoodDef(type).score;
     },
 
     reset: function () {
@@ -477,6 +552,7 @@
       this.world.map[this.snake.segment_indices[1]] = display.segment;
 
       this.time_step = assets.START_TIME_STEP;
+      this.last_speedup_time = performance.now();
       this.spawnFood();
       this.loop();
     },
@@ -500,6 +576,8 @@
       } else if (controller.up) {
         game.setDirection(0, -1);
       }
+
+      game.applyTimedSpeedup(time_stamp);
 
       if (time_stamp >= game.accumulated_time + game.time_step) {
         game.accumulated_time = time_stamp;
@@ -527,6 +605,10 @@
             var eatenIndex = game.food.index;
 
             if (eatenType === "mega") {
+              if (game.food.isWin) {
+                game.awardFoodScore(eatenType);
+              }
+
               display.render(time_stamp);
 
               if (game.food.isWin) {
@@ -579,6 +661,27 @@
 
       this.snake.vector_x = x;
       this.snake.vector_y = y;
+    },
+
+    applyTimedSpeedup: function (now) {
+      if (
+        assets.TIMED_SPEEDUP_MS <= 0 ||
+        assets.TIMED_SPEEDUP_DELTA <= 0 ||
+        this.snake.vector_x === 0 && this.snake.vector_y === 0
+      ) {
+        this.last_speedup_time = now;
+        return;
+      }
+
+      if (now - this.last_speedup_time < assets.TIMED_SPEEDUP_MS) {
+        return;
+      }
+
+      this.time_step = Math.max(
+        assets.TIMED_SPEEDUP_MIN_STEP,
+        this.time_step - assets.TIMED_SPEEDUP_DELTA
+      );
+      this.last_speedup_time = now;
     },
 
     hitSelf: function () {
@@ -649,6 +752,7 @@
     gameOver.scoreEl = document.getElementById("game-over-score");
     gameOver.highEl = document.getElementById("game-over-high");
     gameOver.recordEl = document.getElementById("game-over-record");
+    gameOver.modeEl = document.getElementById("game-over-mode");
     winMenu.overlay = document.getElementById("win-menu");
     winMenu.pictureEl = document.getElementById("win-picture");
     winMenu.pictureEl.src = assets.SCREENS.win.src;

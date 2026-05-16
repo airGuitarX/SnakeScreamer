@@ -92,6 +92,18 @@
     return { scale: scale, alpha: alpha, rotation: rotation };
   }
 
+  function getMegaRevealTileTransform(now) {
+    var anim = config.megaRevealTile;
+    var t = (now / anim.pulsePeriodMs) * Math.PI * 2;
+    var pulse = (Math.sin(t) + 1) / 2;
+
+    return {
+      alpha: anim.minAlpha + (anim.maxAlpha - anim.minAlpha) * pulse,
+      fill: anim.fill,
+      stroke: anim.stroke,
+    };
+  }
+
   function updateFood(now) {
     var anim = config.food;
 
@@ -139,6 +151,7 @@
     },
 
     getFoodTransform: getFoodTransform,
+    getMegaRevealTileTransform: getMegaRevealTileTransform,
     getSnakeTransform: getSnakeTransform,
     update: updateFood,
   };
