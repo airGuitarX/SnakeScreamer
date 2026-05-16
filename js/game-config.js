@@ -10,8 +10,12 @@ window.gameConfig = {
   },
 
   game: {
+    testMode: false,
     startTimeStep: 250,
     speedFoodChance: 0.35,
+    megaFoodChance: 0.8,
+    megaFoodWinChance: 0.5,
+    megaFoodAvoidMs: 1000,
   },
 
   /*
@@ -44,6 +48,23 @@ window.gameConfig = {
         speedDelta: 25,
         minStep: 80,
         canvasFilter: "saturate(1.35) hue-rotate(12deg) brightness(1.08)",
+      },
+      mega: {
+        key: "mega-neutral",
+        revealedLoseKey: "mega-smile",
+        src: "assets/images/mega-neutral.svg",
+        revealedLoseSrc: "assets/images/mega-smile.svg",
+        mapTile: 4,
+        score: 0,
+        segmentIcon: "robot",
+        speedDelta: 0,
+        minStep: 80,
+        canvasFilter: null,
+      },
+    },
+    screens: {
+      win: {
+        src: "assets/images/win-placeholder.svg",
       },
     },
   },

@@ -1,5 +1,5 @@
 (function () {
-  var controller, display, game, gameOver;
+  var controller, display, game, gameOver, winMenu;
   var assets = window.gameAssets;
   var anim = window.gameAnimations;
 
@@ -56,6 +56,29 @@
     },
   };
 
+  winMenu = {
+    active: false,
+    overlay: null,
+    pictureEl: null,
+
+    show: function () {
+      game.snake.vector_x = game.snake.vector_y = 0;
+      this.active = true;
+      this.overlay.hidden = false;
+      this.overlay.classList.remove("hidden");
+
+      if (window.i18n) {
+        window.i18n.apply();
+      }
+    },
+
+    hide: function () {
+      this.active = false;
+      this.overlay.hidden = true;
+      this.overlay.classList.add("hidden");
+    },
+  };
+
   controller = {
     down: false,
     left: false,
@@ -67,15 +90,19 @@
 
       switch (event.keyCode) {
         case 37:
+          event.preventDefault();
           controller.left = key_state;
           break;
         case 38:
+          event.preventDefault();
           controller.up = key_state;
           break;
         case 39:
+          event.preventDefault();
           controller.right = key_state;
           break;
         case 40:
+          event.preventDefault();
           controller.down = key_state;
           break;
       }
@@ -89,8 +116,7 @@
 
     background_tile: 0,
     segment: 1,
-    food_normal: assets.FOOD.normal.mapTile,
-    food_speed: assets.FOOD.speed.mapTile,
+    foodTileTypes: {},
 
     drawTileRect: function (ctx, x, y, size, fill, inner) {
       ctx.fillStyle = fill;
@@ -116,15 +142,25 @@
       var def = game.getFoodDef(type);
       var pos = this.tileXY(index);
       var transform = { scale: 1, alpha: 1, rotation: 0 };
+      var iconKey = def.key;
 
       if (index === anim.foodVisual.index) {
         transform = anim.getFoodTransform(now);
       }
 
       if (
+        type === "mega" &&
+        game.food.index === index &&
+        game.food.revealed &&
+        !game.food.isWin
+      ) {
+        iconKey = def.revealedLoseKey || iconKey;
+      }
+
+      if (
         !assets.drawIcon(
           ctx,
-          def.key,
+          iconKey,
           pos.x,
           pos.y,
           game.world.tile_size,
@@ -138,7 +174,7 @@
           pos.y,
           game.world.tile_size,
           "#301934",
-          type === "speed" ? "#ffe066" : "#ffc82d"
+          type === "mega" ? "#ff9ecf" : type === "speed" ? "#ffe066" : "#ffc82d"
         );
       }
     },
@@ -178,11 +214,10 @@
 
       for (index = 0; index < game.world.map.length; index++) {
         tile = game.world.map[index];
+        var foodType = this.foodTileTypes[tile];
 
-        if (tile === this.food_normal) {
-          display.drawFoodAt(buf, index, "normal", now);
-        } else if (tile === this.food_speed) {
-          display.drawFoodAt(buf, index, "speed", now);
+        if (foodType) {
+          display.drawFoodAt(buf, index, foodType, now);
         }
       }
 
@@ -269,11 +304,14 @@
     food: {
       index: 0,
       type: "normal",
+      isWin: false,
+      revealed: false,
+      revealedAt: 0,
+      clearing: false,
     },
 
     snake: {
       head_index: START_HEAD,
-      old_head_index: undefined,
       segment_indices: [START_HEAD, START_TAIL],
       segment_icons: [assets.SNAKE_ICON, assets.SNAKE_ICON],
       vector_x: 0,
@@ -291,25 +329,125 @@
     time_step: assets.START_TIME_STEP,
 
     getFoodDef: function (type) {
-      return type === "speed" ? assets.FOOD.speed : assets.FOOD.normal;
+      return assets.FOOD[type] || assets.FOOD.normal;
     },
 
-    spawnFood: function () {
-      var type = Math.random() < assets.SPEED_FOOD_CHANCE ? "speed" : "normal";
+    chooseFoodType: function () {
+      var roll = Math.random();
+
+      if (roll < assets.MEGA_FOOD_CHANCE) {
+        return "mega";
+      }
+
+      if (roll < assets.MEGA_FOOD_CHANCE + assets.SPEED_FOOD_CHANCE) {
+        return "speed";
+      }
+
+      return "normal";
+    },
+
+    spawnFood: function (forcedType) {
+      var type = forcedType || this.chooseFoodType();
       var def = this.getFoodDef(type);
       var index = Math.floor(Math.random() * this.world.map.length);
+      var checked = 0;
 
-      while (this.world.map[index] !== display.background_tile) {
+      while (!this.canSpawnFoodAt(type, index)) {
         index += 1;
         if (index > this.world.map.length - 1) {
           index = 0;
+        }
+        checked += 1;
+        if (checked > this.world.map.length) {
+          return;
         }
       }
 
       this.food.type = type;
       this.food.index = index;
+      this.food.isWin =
+        type === "mega" && Math.random() < assets.MEGA_FOOD_WIN_CHANCE;
+      this.food.revealed = false;
+      this.food.revealedAt = 0;
+      this.food.clearing = false;
       this.world.map[index] = def.mapTile;
       anim.onFoodSpawn(index, type, performance.now());
+    },
+
+    canSpawnFoodAt: function (type, index) {
+      var col;
+      var row;
+
+      if (this.world.map[index] !== display.background_tile) {
+        return false;
+      }
+
+      if (type !== "mega") {
+        return true;
+      }
+
+      col = index % this.world.columns;
+      row = Math.floor(index / this.world.columns);
+
+      return (
+        col > 0 &&
+        col < this.world.columns - 1 &&
+        row > 0 &&
+        row < this.world.rows - 1
+      );
+    },
+
+    updateMegaFood: function (now) {
+      var headCol;
+      var headRow;
+      var foodCol;
+      var foodRow;
+
+      if (
+        this.food.type !== "mega" ||
+        this.food.index < 0 ||
+        this.food.clearing
+      ) {
+        return;
+      }
+
+      if (this.food.revealed) {
+        if (
+          !this.food.isWin &&
+          now - this.food.revealedAt >= assets.MEGA_FOOD_AVOID_MS
+        ) {
+          this.clearMegaFood(now);
+        }
+        return;
+      }
+
+      headCol = this.snake.head_index % this.world.columns;
+      headRow = Math.floor(this.snake.head_index / this.world.columns);
+      foodCol = this.food.index % this.world.columns;
+      foodRow = Math.floor(this.food.index / this.world.columns);
+
+      if (
+        Math.abs(headCol - foodCol) + Math.abs(headRow - foodRow) === 1 &&
+        !this.food.isWin
+      ) {
+        this.food.revealed = true;
+        this.food.revealedAt = now;
+      }
+    },
+
+    clearMegaFood: function (now) {
+      var clearedIndex = this.food.index;
+      var clearedType = this.food.type;
+
+      this.food.index = -1;
+      this.food.revealed = false;
+      this.food.revealedAt = 0;
+      this.food.clearing = true;
+      this.world.map[clearedIndex] = display.background_tile;
+
+      anim.onFoodDespawn(clearedIndex, clearedType, now, function () {
+        game.spawnFood();
+      });
     },
 
     applyFoodEffect: function (type) {
@@ -321,6 +459,7 @@
 
     reset: function () {
       gameOver.hide();
+      winMenu.hide();
       anim.reset();
       this.score = 0;
 
@@ -331,7 +470,6 @@
       this.snake.segment_indices = [START_HEAD, START_TAIL];
       this.snake.segment_icons = [assets.SNAKE_ICON, assets.SNAKE_ICON];
       this.snake.head_index = START_HEAD;
-      this.snake.old_head_index = undefined;
       this.snake.vector_x = this.snake.vector_y = 0;
 
       this.world.map.fill(display.background_tile);
@@ -344,58 +482,37 @@
     },
 
     loop: function (time_stamp) {
-      if (gameOver.active) {
+      if (!time_stamp) {
+        time_stamp = performance.now();
+      }
+
+      if (gameOver.active || winMenu.active) {
         window.requestAnimationFrame(game.loop);
         return;
       }
 
       if (controller.down) {
-        game.snake.vector_x = 0;
-        game.snake.vector_y = 1;
+        game.setDirection(0, 1);
       } else if (controller.left) {
-        game.snake.vector_x = -1;
-        game.snake.vector_y = 0;
+        game.setDirection(-1, 0);
       } else if (controller.right) {
-        game.snake.vector_x = 1;
-        game.snake.vector_y = 0;
+        game.setDirection(1, 0);
       } else if (controller.up) {
-        game.snake.vector_x = 0;
-        game.snake.vector_y = -1;
+        game.setDirection(0, -1);
       }
 
       if (time_stamp >= game.accumulated_time + game.time_step) {
         game.accumulated_time = time_stamp;
 
         if (game.snake.vector_x != 0 || game.snake.vector_y != 0) {
-          if (
-            game.snake.head_index +
-              game.snake.vector_y * game.world.columns +
-              game.snake.vector_x ==
-            game.snake.old_head_index
-          ) {
-            game.snake.vector_x = game.snake.vector_y = 0;
-            display.render(time_stamp);
-            window.requestAnimationFrame(game.loop);
-            return;
-          }
-
           let tail_index = game.snake.segment_indices.pop();
           game.snake.segment_icons.pop();
           game.world.map[tail_index] = display.background_tile;
-          game.snake.old_head_index = game.snake.head_index;
           game.snake.head_index +=
             game.snake.vector_y * game.world.columns + game.snake.vector_x;
+          game.wrapHeadForTestMode();
 
-          if (
-            game.world.map[game.snake.head_index] == display.segment ||
-            game.snake.head_index < 0 ||
-            game.snake.head_index > game.world.map.length - 1 ||
-            (game.snake.vector_x == -1 &&
-              game.snake.head_index % game.world.columns ==
-                game.world.columns - 1) ||
-            (game.snake.vector_x == 1 &&
-              game.snake.head_index % game.world.columns == 0)
-          ) {
+          if (game.hitSelf() || game.hitWall()) {
             display.render(time_stamp);
             gameOver.show(game.score);
             return;
@@ -405,9 +522,22 @@
           game.snake.segment_indices.unshift(game.snake.head_index);
           game.snake.segment_icons.unshift(assets.SNAKE_ICON);
 
-          if (game.snake.head_index == game.food.index) {
+          if (game.food.index >= 0 && game.snake.head_index == game.food.index) {
             var eatenType = game.food.type;
             var eatenIndex = game.food.index;
+
+            if (eatenType === "mega") {
+              display.render(time_stamp);
+
+              if (game.food.isWin) {
+                winMenu.show();
+              } else {
+                gameOver.show(game.score);
+              }
+
+              return;
+            }
+
             var newIcon = game.applyFoodEffect(eatenType);
 
             game.world.map[eatenIndex] = display.background_tile;
@@ -432,12 +562,77 @@
         }
       }
 
+      game.updateMegaFood(time_stamp);
       display.render(time_stamp);
       window.requestAnimationFrame(game.loop);
+    },
+
+    setDirection: function (x, y) {
+      var reversing =
+        this.snake.segment_indices.length > 1 &&
+        this.snake.vector_x === -x &&
+        this.snake.vector_y === -y;
+
+      if (reversing) {
+        return;
+      }
+
+      this.snake.vector_x = x;
+      this.snake.vector_y = y;
+    },
+
+    hitSelf: function () {
+      return game.world.map[game.snake.head_index] == display.segment;
+    },
+
+    wrapHeadForTestMode: function () {
+      var col;
+      var row;
+
+      if (!assets.TEST_MODE) {
+        return;
+      }
+
+      col = game.snake.head_index % game.world.columns;
+      row = Math.floor(game.snake.head_index / game.world.columns);
+
+      if (col < 0) {
+        col = game.world.columns - 1;
+      } else if (col >= game.world.columns) {
+        col = 0;
+      }
+
+      if (row < 0) {
+        row = game.world.rows - 1;
+      } else if (row >= game.world.rows) {
+        row = 0;
+      }
+
+      game.snake.head_index = row * game.world.columns + col;
+    },
+
+    hitWall: function () {
+      if (assets.TEST_MODE) {
+        return false;
+      }
+
+      return (
+        game.snake.head_index < 0 ||
+        game.snake.head_index > game.world.map.length - 1 ||
+        (game.snake.vector_x == -1 &&
+          game.snake.head_index % game.world.columns ==
+            game.world.columns - 1) ||
+        (game.snake.vector_x == 1 &&
+          game.snake.head_index % game.world.columns == 0)
+      );
     },
   };
 
   function boot() {
+    Object.keys(assets.FOOD).forEach(function (type) {
+      display.foodTileTypes[assets.FOOD[type].mapTile] = type;
+    });
+
     display.buffer.canvas.height =
       game.world.columns * game.world.tile_size;
     display.buffer.canvas.width =
@@ -454,8 +649,14 @@
     gameOver.scoreEl = document.getElementById("game-over-score");
     gameOver.highEl = document.getElementById("game-over-high");
     gameOver.recordEl = document.getElementById("game-over-record");
+    winMenu.overlay = document.getElementById("win-menu");
+    winMenu.pictureEl = document.getElementById("win-picture");
+    winMenu.pictureEl.src = assets.SCREENS.win.src;
 
     document.getElementById("play-again").addEventListener("click", function () {
+      game.reset();
+    });
+    document.getElementById("win-play-again").addEventListener("click", function () {
       game.reset();
     });
 

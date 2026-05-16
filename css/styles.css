@@ -199,18 +199,14 @@ canvas {
   padding: 0 0.5rem 1rem;
 }
 
-.game-footer-note {
-  color: var(--purple-light);
-  font-size: 0.8rem;
-}
-
 .hideable {
   display: grid;
 }
 
 /* —— Game over overlay —— */
 
-.game-over {
+.game-over,
+.win-menu {
   align-items: center;
   backdrop-filter: blur(6px);
   background: rgba(48, 25, 52, 0.88);
@@ -222,7 +218,8 @@ canvas {
   z-index: 100;
 }
 
-.game-over.hidden {
+.game-over.hidden,
+.win-menu.hidden {
   display: none;
 }
 
@@ -280,6 +277,15 @@ canvas {
 
 .game-over-record.hidden {
   display: none;
+}
+
+.win-picture {
+  aspect-ratio: 16 / 9;
+  border: 2px solid var(--purple-mid);
+  border-radius: 8px;
+  display: block;
+  object-fit: cover;
+  width: 100%;
 }
 
 .game-over-actions {

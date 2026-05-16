@@ -20,13 +20,14 @@
       backToMenu: "← 菜单",
       gameFooter:
         "吃到食物变长，避开墙壁和自己的身体。",
-      gameFooterNote:
-        "方向键控制 · 能量块：成长+加速 · 亮金色：成长+大幅加速",
       scoreLabel: "得分：",
       canvasAria: "贪吃蛇游戏区域",
       gameOverTitle: "游戏结束",
       gameOverAria: "游戏结束",
       gameOverActionsAria: "游戏结束选项",
+      winTitle: "你赢了！",
+      winAria: "胜利",
+      winActionsAria: "胜利选项",
       currentScoreLabel: "本次得分",
       highScoreLabel: "最高分",
       newHighScore: "新纪录！",
@@ -50,13 +51,14 @@
       backToMenu: "← Menu",
       gameFooter:
         "Collect segments to grow. Avoid walls and your own tail.",
-      gameFooterNote:
-        "Arrow keys · Energon: grow + speed · Bright gold: big speed boost",
       scoreLabel: "SCORE: ",
       canvasAria: "Snake game board",
       gameOverTitle: "Game Over",
       gameOverAria: "Game over",
       gameOverActionsAria: "Game over options",
+      winTitle: "You Win!",
+      winAria: "Win",
+      winActionsAria: "Win options",
       currentScoreLabel: "Score",
       highScoreLabel: "High score",
       newHighScore: "New high score!",

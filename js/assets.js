@@ -14,10 +14,14 @@
   }
 
   registerIcon(config.icons.snake);
-  registerIcon(config.icons.foods.normal);
-  if (config.icons.foods.speed.key !== config.icons.foods.normal.key) {
-    registerIcon(config.icons.foods.speed);
-  }
+  Object.keys(config.icons.foods).forEach(function (type) {
+    var food = config.icons.foods[type];
+    registerIcon(food);
+    registerIcon({
+      key: food.revealedLoseKey,
+      src: food.revealedLoseSrc,
+    });
+  });
 
   function loadAll(callback) {
     var keys = Object.keys(iconRegistry);
@@ -75,9 +79,14 @@
     COLUMNS: grid.columns,
     ROWS: grid.rows,
     MAP_SIZE: grid.columns * grid.rows,
+    TEST_MODE: config.game.testMode,
     START_TIME_STEP: config.game.startTimeStep,
     SPEED_FOOD_CHANCE: config.game.speedFoodChance,
+    MEGA_FOOD_CHANCE: config.game.megaFoodChance,
+    MEGA_FOOD_WIN_CHANCE: config.game.megaFoodWinChance,
+    MEGA_FOOD_AVOID_MS: config.game.megaFoodAvoidMs,
     FOOD: config.icons.foods,
+    SCREENS: config.icons.screens,
     SNAKE_ICON: config.icons.snake.key,
     images: images,
     get ready() {

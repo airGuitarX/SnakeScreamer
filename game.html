@@ -16,10 +16,8 @@
     <p class="score" id="score">得分：0000</p>
     <canvas data-i18n-aria="canvasAria" aria-label="贪吃蛇游戏区域"></canvas>
 
-    <p class="game-footer hideable">
+    <p class="game-footer">
       <span data-i18n="gameFooter">吃到食物变长，避开墙壁和自己的身体。</span>
-      <br>
-      <span class="game-footer-note" data-i18n="gameFooterNote">方向键控制 · 按反方向可暂停</span>
     </p>
 
     <div
@@ -49,6 +47,26 @@
 
         <nav class="game-over-actions" data-i18n-aria="gameOverActionsAria" aria-label="游戏结束选项">
           <button type="button" class="btn btn-primary" id="play-again" data-i18n="playAgain">再玩一次</button>
+          <a class="btn btn-lang" href="index.html" data-i18n="backToMenu">← 菜单</a>
+        </nav>
+      </div>
+    </div>
+
+    <div
+      id="win-menu"
+      class="win-menu hidden"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      data-i18n-aria="winAria"
+      aria-label="胜利"
+    >
+      <div class="game-over-panel">
+        <h2 class="game-over-title" data-i18n="winTitle">你赢了！</h2>
+        <img id="win-picture" class="win-picture" alt="">
+
+        <nav class="game-over-actions" data-i18n-aria="winActionsAria" aria-label="胜利选项">
+          <button type="button" class="btn btn-primary" id="win-play-again" data-i18n="playAgain">再玩一次</button>
           <a class="btn btn-lang" href="index.html" data-i18n="backToMenu">← 菜单</a>
         </nav>
       </div>
