@@ -3,7 +3,60 @@
 (function() {
 
   /* I split the logic into three separate parts for organizational purposes. */
-  var controller, display, game;
+  var controller, display, game, gameOver;
+
+  var HIGH_SCORE_KEY = "ssnake-high-score";
+
+  gameOver = {
+
+    active: false,
+    overlay: null,
+    scoreEl: null,
+    highEl: null,
+    recordEl: null,
+
+    getHighScore: function () {
+      return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || "0", 10);
+    },
+
+    saveHighScore: function (score) {
+      localStorage.setItem(HIGH_SCORE_KEY, String(score));
+    },
+
+    show: function (finalScore) {
+      var previousHigh = this.getHighScore();
+      var isNewRecord = finalScore > previousHigh;
+
+      if (isNewRecord) {
+        this.saveHighScore(finalScore);
+      }
+
+      this.scoreEl.textContent = finalScore;
+      this.highEl.textContent = isNewRecord ? finalScore : previousHigh;
+
+      if (isNewRecord) {
+        this.recordEl.classList.remove("hidden");
+      } else {
+        this.recordEl.classList.add("hidden");
+      }
+
+      game.snake.vector_x = game.snake.vector_y = 0;
+      this.active = true;
+      this.overlay.hidden = false;
+      this.overlay.classList.remove("hidden");
+
+      if (window.i18n) {
+        window.i18n.apply();
+      }
+    },
+
+    hide: function () {
+      this.active = false;
+      this.overlay.hidden = true;
+      this.overlay.classList.add("hidden");
+    },
+
+  };
 
   /* The controller handles everything to do with getting user input. */
   controller = {
@@ -118,14 +171,15 @@
       }
 
       /* Output the score at the top of the screen, remembering to add leading zeros. */
-      let leading_zeros = "SCORE: ";
+      let label = window.i18n ? window.i18n.t("scoreLabel") : "SCORE: ";
+      let leading_zeros = label;
       for (let index = 4 - game.score.toString().length; index > 0; -- index) {
 
         leading_zeros += "0";
 
       }
 
-      this.output.innerHTML = leading_zeros + game.score;
+      this.output.textContent = leading_zeros + game.score;
 
       /* Draw the finalized buffer to the display canvas. This takes care of scaling. */
       this.context.drawImage(this.buffer.canvas, 0, 0, this.buffer.canvas.width, this.buffer.canvas.height, 0, 0, this.context.canvas.width, this.context.canvas.height);
@@ -208,9 +262,10 @@
     accumulated_time:0,
     time_step:250,/* The amount of time to wait between redraws. */
 
-    /* This resets the game. */
+    /* This resets the game board and starts a new round. */
     reset:function() {
 
+      gameOver.hide();
       this.score = 0;
 
       /* Set all the tiles under the snake to zeros. */
@@ -237,6 +292,13 @@
 
     /* This is the game loop. All the cool stuff happens here. */
     loop:function(time_stamp) {
+
+      if (gameOver.active) {
+
+        window.requestAnimationFrame(game.loop);
+        return;
+
+      }
 
       /* Get controller input. Make sure that the vector on the opposite axis is
       set to 0 so the snake doesn't move on a diagonal. */
@@ -299,7 +361,8 @@
             || (game.snake.vector_x == -1 && game.snake.head_index % game.world.columns == game.world.columns - 1)// off the left of the map
             || (game.snake.vector_x == 1 && (game.snake.head_index % game.world.columns == 0))) {// off the right
 
-            game.reset();
+            display.render();
+            gameOver.show(game.score);
             return;
 
           }
@@ -323,7 +386,8 @@
             // If the snake fills up the entire map minus 1 space, reset the game.
             if (game.snake.segment_indices.length == game.world.map.length - 1) {
 
-              game.reset();
+              display.render();
+              gameOver.show(game.score);
               return;
 
             }
@@ -375,6 +439,18 @@
   window.addEventListener("resize", display.resize);
   window.addEventListener("keydown", controller.keyUpDown);
   window.addEventListener("keyup", controller.keyUpDown);
+  window.addEventListener("languagechange", function () {
+    display.render();
+  });
+
+  gameOver.overlay = document.getElementById("game-over");
+  gameOver.scoreEl = document.getElementById("game-over-score");
+  gameOver.highEl = document.getElementById("game-over-high");
+  gameOver.recordEl = document.getElementById("game-over-record");
+
+  document.getElementById("play-again").addEventListener("click", function () {
+    game.reset();
+  });
 
   game.reset();
   display.resize();

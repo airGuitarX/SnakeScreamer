@@ -117,6 +117,20 @@ body {
   transform: translateY(0);
 }
 
+.btn-lang {
+  background: transparent;
+  border: 2px solid var(--purple-mid);
+  color: var(--purple-light);
+  font-size: 0.95rem;
+  padding: 0.65rem 1.75rem;
+}
+
+.btn-lang:hover {
+  background: rgba(100, 83, 148, 0.25);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
 /* —— Game page —— */
 
 .game-page {
@@ -189,4 +203,88 @@ canvas {
 
 .hideable {
   display: grid;
+}
+
+/* —— Game over overlay —— */
+
+.game-over {
+  align-items: center;
+  backdrop-filter: blur(6px);
+  background: rgba(48, 25, 52, 0.88);
+  display: grid;
+  inset: 0;
+  justify-items: center;
+  padding: 1.5rem;
+  position: fixed;
+  z-index: 100;
+}
+
+.game-over.hidden {
+  display: none;
+}
+
+.game-over-panel {
+  background: var(--surface-elevated);
+  border: 2px solid var(--purple-mid);
+  border-radius: 16px;
+  box-shadow: 0 20px 48px var(--shadow);
+  display: grid;
+  gap: 1.25rem;
+  max-width: 22rem;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.game-over-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.game-over-stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.game-over-stat {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.game-over-stat dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-over-stat dd {
+  color: var(--purple-glow);
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.game-over-record {
+  color: var(--accent-apple);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.game-over-record.hidden {
+  display: none;
+}
+
+.game-over-actions {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.game-over-actions .btn {
+  min-width: 11rem;
 }
