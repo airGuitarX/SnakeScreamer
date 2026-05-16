@@ -8,9 +8,9 @@
       pageTitleGame: "贪吃红 — 游戏中",
       metaDescriptionMenu: "贪吃红 — 可自定义的浏览器贪吃蛇游戏。",
       metaDescriptionGame: "贪吃红 — TFA版贪吃蛇",
-      menuEyebrow: "经典街机",
+      menuEyebrow: "TFA小游戏",
       menuTitle: "贪吃红",
-      menuTagline: "控制蛇身成长，避开自己，挑战最高分。",
+      menuTagline: "成为扭力达？就在今天",
       menuStart: "开始",
       menuHint: "键盘 · 方向键移动",
       menuActionsAria: "游戏选项",
@@ -20,7 +20,8 @@
       backToMenu: "← 菜单",
       gameFooter:
         "吃到食物变长，避开墙壁和自己的身体。",
-      gameFooterNote: "方向键控制 · 按反方向可暂停",
+      gameFooterNote:
+        "方向键控制 · 能量块：成长+加速 · 亮金色：成长+大幅加速",
       scoreLabel: "得分：",
       canvasAria: "贪吃蛇游戏区域",
       gameOverTitle: "游戏结束",
@@ -36,10 +37,10 @@
       pageTitleGame: "ScreamerSnake — Play",
       metaDescriptionMenu: "ScreamerSnake — a customizable browser snake game.",
       metaDescriptionGame: "Play ScreamerSnake — a simple snake game in your browser.",
-      menuEyebrow: "Classic arcade",
+      menuEyebrow: "TFA mini game",
       menuTitle: "ScreamerSnake",
       menuTagline:
-        "Grow your snake, dodge yourself, and chase the highest score.",
+        "Become new leader? Today!",
       menuStart: "Start",
       menuHint: "Keyboard required · Arrow keys to move",
       menuActionsAria: "Game options",
@@ -50,7 +51,7 @@
       gameFooter:
         "Collect segments to grow. Avoid walls and your own tail.",
       gameFooterNote:
-        "Arrow keys · Press opposite direction to pause",
+        "Arrow keys · Energon: grow + speed · Bright gold: big speed boost",
       scoreLabel: "SCORE: ",
       canvasAria: "Snake game board",
       gameOverTitle: "Game Over",

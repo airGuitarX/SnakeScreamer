@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Speed food">
+  <rect width="64" height="64" rx="12" fill="#301934"/>
+  <circle cx="32" cy="34" r="18" fill="#645394"/>
+  <path fill="#ffd86b" d="M18 36 L30 22 L28 34 L46 28 L34 42 L36 30 Z"/>
+  <path fill="#e8c4ff" d="M22 40 Q32 50 42 40 Q32 46 22 40 Z"/>
+</svg>

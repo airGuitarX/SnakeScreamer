@@ -1,4 +1,4 @@
-/* Based on Frank Poth's snake demo — restyled for SSnake */
+/* ScreamerSnake / 贪吃红 */
 
 :root {
   --purple-dark: #301934;
@@ -139,6 +139,7 @@ body {
   grid-template-columns: 1fr;
   grid-template-rows: auto auto 1fr auto;
   justify-items: center;
+  min-height: 100dvh;
   padding: 1rem;
 }
 
@@ -183,9 +184,11 @@ canvas {
   border-radius: 8px;
   box-shadow: 0 16px 40px var(--shadow);
   display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
   justify-self: center;
-  max-height: min(80dvh, 80vw);
-  max-width: min(92vw, 520px);
+  max-height: min(78dvh, 92vw);
+  max-width: min(92vw, 640px);
 }
 
 .game-footer {
