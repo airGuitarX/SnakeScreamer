@@ -36,6 +36,7 @@
       currentScoreLabel: "本次得分",
       highScoreLabel: "最高分",
       newHighScore: "新纪录！",
+      megaAvoided: "避开 +{score}",
       playAgain: "再玩一次",
     },
     en: {
@@ -72,6 +73,7 @@
       currentScoreLabel: "Score",
       highScoreLabel: "High score",
       newHighScore: "New high score!",
+      megaAvoided: "Avoided +{score}",
       playAgain: "Play again",
     },
   };

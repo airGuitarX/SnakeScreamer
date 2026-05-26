@@ -14,7 +14,10 @@
     </header>
 
     <p class="score" id="score">得分：0000</p>
-    <canvas data-i18n-aria="canvasAria" aria-label="贪吃蛇游戏区域"></canvas>
+    <div class="game-board">
+      <canvas data-i18n-aria="canvasAria" aria-label="贪吃蛇游戏区域"></canvas>
+      <div id="effect-popups" class="effect-popups" aria-live="polite"></div>
+    </div>
 
     <p class="game-footer">
       <span data-i18n="gameFooter">吃到食物变长，避开墙壁和自己的身体。</span>
@@ -65,6 +68,20 @@
       <div class="game-over-panel">
         <h2 class="game-over-title" data-i18n="winTitle">你赢了！</h2>
         <img id="win-picture" class="win-picture" alt="">
+
+        <dl class="game-over-stats">
+          <div class="game-over-stat">
+            <dt data-i18n="currentScoreLabel">本次得分</dt>
+            <dd id="win-score">0</dd>
+          </div>
+          <div class="game-over-stat">
+            <dt data-i18n="highScoreLabel">最高分</dt>
+            <dd id="win-high">0</dd>
+          </div>
+        </dl>
+
+        <p id="win-record" class="game-over-record hidden" data-i18n="newHighScore">新纪录！</p>
+        <p id="win-mode" class="game-over-mode"></p>
 
         <nav class="game-over-actions" data-i18n-aria="winActionsAria" aria-label="胜利选项">
           <button type="button" class="btn btn-primary" id="win-play-again" data-i18n="playAgain">再玩一次</button>

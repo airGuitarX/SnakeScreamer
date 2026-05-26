@@ -7,6 +7,66 @@
   var START_HEAD = 78;
   var START_TAIL = 79;
 
+  function currentMode() {
+    var state = window.gameModes && window.gameModes.load();
+    return state && state.selectedMode ? state.selectedMode : "normal";
+  }
+
+  function highScoreKey() {
+    return HIGH_SCORE_KEY + "-" + currentMode();
+  }
+
+  function parseScore(value) {
+    var score = parseInt(value || "0", 10);
+    return isNaN(score) ? 0 : score;
+  }
+
+  function getHighScore() {
+    var scopedKey = highScoreKey();
+    var scoped = localStorage.getItem(scopedKey);
+    var legacy;
+
+    if (scoped !== null) {
+      return parseScore(scoped);
+    }
+
+    legacy = localStorage.getItem(HIGH_SCORE_KEY);
+    if (legacy !== null && currentMode() === "normal") {
+      localStorage.setItem(scopedKey, legacy);
+      return parseScore(legacy);
+    }
+
+    return 0;
+  }
+
+  function saveHighScore(score) {
+    localStorage.setItem(highScoreKey(), String(score));
+  }
+
+  function applyFinalScore(finalScore, scoreEl, highEl, recordEl, modeEl) {
+    var previousHigh = getHighScore();
+    var isNewRecord = finalScore > previousHigh;
+
+    if (isNewRecord) {
+      saveHighScore(finalScore);
+    }
+
+    scoreEl.textContent = finalScore;
+    highEl.textContent = isNewRecord ? finalScore : previousHigh;
+
+    if (recordEl) {
+      if (isNewRecord) {
+        recordEl.classList.remove("hidden");
+      } else {
+        recordEl.classList.add("hidden");
+      }
+    }
+
+    if (modeEl && window.gameModes) {
+      modeEl.textContent = window.gameModes.modeSummary();
+    }
+  }
+
   gameOver = {
     active: false,
     overlay: null,
@@ -15,34 +75,14 @@
     recordEl: null,
     modeEl: null,
 
-    getHighScore: function () {
-      return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || "0", 10);
-    },
-
-    saveHighScore: function (score) {
-      localStorage.setItem(HIGH_SCORE_KEY, String(score));
-    },
-
     show: function (finalScore) {
-      var previousHigh = this.getHighScore();
-      var isNewRecord = finalScore > previousHigh;
-
-      if (isNewRecord) {
-        this.saveHighScore(finalScore);
-      }
-
-      this.scoreEl.textContent = finalScore;
-      this.highEl.textContent = isNewRecord ? finalScore : previousHigh;
-
-      if (isNewRecord) {
-        this.recordEl.classList.remove("hidden");
-      } else {
-        this.recordEl.classList.add("hidden");
-      }
-
-      if (this.modeEl && window.gameModes) {
-        this.modeEl.textContent = window.gameModes.modeSummary();
-      }
+      applyFinalScore(
+        finalScore,
+        this.scoreEl,
+        this.highEl,
+        this.recordEl,
+        this.modeEl
+      );
 
       game.snake.vector_x = game.snake.vector_y = 0;
       this.active = true;
@@ -65,8 +105,20 @@
     active: false,
     overlay: null,
     pictureEl: null,
+    scoreEl: null,
+    highEl: null,
+    recordEl: null,
+    modeEl: null,
 
-    show: function () {
+    show: function (finalScore) {
+      applyFinalScore(
+        finalScore,
+        this.scoreEl,
+        this.highEl,
+        this.recordEl,
+        this.modeEl
+      );
+
       game.snake.vector_x = game.snake.vector_y = 0;
       this.active = true;
       this.overlay.hidden = false;
@@ -118,6 +170,7 @@
     buffer: document.createElement("canvas").getContext("2d"),
     context: document.querySelector("canvas").getContext("2d"),
     output: document.querySelector("#score"),
+    effectLayer: document.querySelector("#effect-popups"),
 
     background_tile: 0,
     segment: 1,
@@ -324,6 +377,38 @@
         }
       }
     },
+
+    showEffectPopup: function (index, message) {
+      var popup;
+      var col;
+      var row;
+      var scale;
+      var x;
+      var y;
+
+      if (!this.effectLayer) {
+        return;
+      }
+
+      col = index % game.world.columns;
+      row = Math.floor(index / game.world.columns);
+      scale = this.context.canvas.clientWidth / this.buffer.canvas.width;
+      x = (col + 0.5) * game.world.tile_size * scale;
+      y = (row + 0.5) * game.world.tile_size * scale;
+
+      popup = document.createElement("span");
+      popup.className = "effect-popup";
+      popup.textContent = message;
+      popup.style.left = x + "px";
+      popup.style.top = y + "px";
+      this.effectLayer.appendChild(popup);
+
+      window.setTimeout(function () {
+        if (popup.parentNode) {
+          popup.parentNode.removeChild(popup);
+        }
+      }, 950);
+    },
   };
 
   game = {
@@ -412,6 +497,10 @@
       var row;
 
       if (this.world.map[index] !== display.background_tile) {
+        return false;
+      }
+
+      if (this.snake.segment_indices.indexOf(index) !== -1) {
         return false;
       }
 
@@ -508,8 +597,13 @@
     clearMegaFood: function (now) {
       var clearedIndex = this.food.index;
       var clearedType = this.food.type;
+      var earnedScore = this.getFoodDef(clearedType).score;
+      var message = window.i18n
+        ? window.i18n.t("megaAvoided").replace("{score}", earnedScore)
+        : "Avoided +" + earnedScore;
 
       this.awardFoodScore(clearedType);
+      display.showEffectPopup(clearedIndex, message);
       this.food.index = -1;
       this.food.revealed = false;
       this.food.revealedAt = 0;
@@ -612,7 +706,7 @@
               display.render(time_stamp);
 
               if (game.food.isWin) {
-                winMenu.show();
+                winMenu.show(game.score);
               } else {
                 gameOver.show(game.score);
               }
@@ -755,6 +849,10 @@
     gameOver.modeEl = document.getElementById("game-over-mode");
     winMenu.overlay = document.getElementById("win-menu");
     winMenu.pictureEl = document.getElementById("win-picture");
+    winMenu.scoreEl = document.getElementById("win-score");
+    winMenu.highEl = document.getElementById("win-high");
+    winMenu.recordEl = document.getElementById("win-record");
+    winMenu.modeEl = document.getElementById("win-mode");
     winMenu.pictureEl.src = assets.SCREENS.win.src;
 
     document.getElementById("play-again").addEventListener("click", function () {
