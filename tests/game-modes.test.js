@@ -71,7 +71,10 @@ Deno.test("normal mode applies the normal preset by default", async () => {
   assertEquals(config.megaMode, false);
   assertEquals(config.startTimeStep, 250);
   assertEquals(config.speedFoodChance, 0.3);
+  assertEquals(config.shockFoodChance, 0.12);
   assertEquals(config.megaFoodChance, 0.1);
+  assertEquals(config.megaFoodWinChance, 0.04);
+  assertEquals(config.shockMegaWinCap, 0.12);
   assertEquals(config.timedSpeedupMs, 0);
 });
 
@@ -82,18 +85,24 @@ Deno.test("hard mode applies hard reveal settings without forcing mega-only spaw
   assertEquals(config.hardMode, true);
   assertEquals(config.megaMode, false);
   assertEquals(config.startTimeStep, 230);
+  assertEquals(config.shockFoodChance, 0.08);
   assertEquals(config.speedFoodChance, 0.35);
+  assertEquals(config.megaFoodWinChance, 0.03);
+  assertEquals(config.shockMegaWinCap, 0.1);
   assertEquals(config.timedSpeedupMs, 0);
 });
 
-Deno.test("mega mode builds on hard mode and forces mega-only spawns", async () => {
+Deno.test("mega mode builds on hard mode and keeps rare shock food", async () => {
   const { config } = await loadScripts({ selectedMode: "mega" });
 
   assertEquals(config.selectedMode, "mega");
   assertEquals(config.hardMode, true);
   assertEquals(config.megaMode, true);
+  assertEquals(config.shockFoodChance, 0.08);
   assertEquals(config.speedFoodChance, 0);
   assertEquals(config.megaFoodChance, 1);
+  assertEquals(config.megaFoodWinChance, 0.02);
+  assertEquals(config.shockMegaWinCap, 0.06);
   assertEquals(config.timedSpeedupMs, 2500);
   assertEquals(config.timedSpeedupDelta, 8);
   assertEquals(config.timedSpeedupMinStep, 90);

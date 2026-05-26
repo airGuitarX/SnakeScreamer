@@ -85,6 +85,9 @@
     HARD_MODE: config.game.hardMode,
     MEGA_MODE: config.game.megaMode,
     START_TIME_STEP: config.game.startTimeStep,
+    SHOCK_FOOD_CHANCE: config.game.shockFoodChance,
+    SHOCK_MEGA_WIN_BONUS: config.game.shockMegaWinBonus,
+    SHOCK_MEGA_WIN_CAP: config.game.shockMegaWinCap,
     SPEED_FOOD_CHANCE: config.game.speedFoodChance,
     MEGA_FOOD_CHANCE: config.game.megaFoodChance,
     MEGA_FOOD_WIN_CHANCE: config.game.megaFoodWinChance,
@@ -93,6 +96,7 @@
     TIMED_SPEEDUP_DELTA: config.game.timedSpeedupDelta,
     TIMED_SPEEDUP_MIN_STEP: config.game.timedSpeedupMinStep,
     FOOD: config.icons.foods,
+    EFFECT_MESSAGES: config.game.effectMessages || {},
     SCREENS: config.icons.screens,
     SNAKE_ICON: config.icons.snake.key,
     SNAKE_HEAD_ICON:

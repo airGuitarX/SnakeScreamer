@@ -10,39 +10,74 @@ window.gameConfig = {
   },
 
   game: {
+    // Mode loaded when the player opens game.html without choosing from the menu.
     defaultMode: "normal",
+    // Developer helper: true wraps through walls instead of dying.
     testMode: false,
     modeDefaults: {
+      // Hard mode reveals losing MegaFood only when moving toward it.
       hardMode: false,
+      // Mega mode changes spawn rules so most food is MegaFood.
       megaMode: false,
+      // Initial movement interval in milliseconds; lower is faster.
       startTimeStep: 250,
+      // Chance that a non-Mega-mode spawn is ShockFood.
+      // In Mega mode this is the chance to spawn ShockFood instead of MegaFood.
+      shockFoodChance: 0.12,
+      // Amount ShockFood adds to MegaFood's win chance for the current run.
+      shockMegaWinBonus: 0.01,
+      // Highest MegaFood win chance ShockFood can build up to.
+      shockMegaWinCap: 0.12,
+      // Chance that a non-Mega, non-Shock spawn is speed food.
       speedFoodChance: 0.3,
+      // Chance that a normal/hard mode spawn is MegaFood.
       megaFoodChance: 0.1,
-      megaFoodWinChance: 0.1,
+      // Base chance that an unrevealed MegaFood is lucky/winning.
+      megaFoodWinChance: 0.04,
+      // How long a revealed losing MegaFood stays before it is safely avoided.
       megaFoodAvoidMs: 1000,
+      // Automatic speed-up interval in milliseconds; 0 disables timed speed-up.
       timedSpeedupMs: 0,
+      // Movement interval removed on each timed speed-up tick.
       timedSpeedupDelta: 0,
       // Smallest movement interval timed speedup can reach; lower is faster.
       timedSpeedupMinStep: 100,
     },
     modeConfigs: {
+      // Empty object means normal mode uses modeDefaults as-is.
       normal: {},
+      // Hard mode is slightly faster, has more MegaFood, and ShockFood caps lower.
       hard: {
         hardMode: true,
         startTimeStep: 230,
+        shockFoodChance: 0.08,
+        shockMegaWinCap: 0.1,
         speedFoodChance: 0.35,
         megaFoodChance: 0.2,
-        megaFoodWinChance: 0.1,
+        megaFoodWinChance: 0.03,
       },
+      // Mega mode is mostly MegaFood, with rare ShockFood to slowly improve odds.
       mega: {
         hardMode: true,
         megaMode: true,
+        shockFoodChance: 0.08,
         speedFoodChance: 0,
         megaFoodChance: 1,
-        megaFoodWinChance: 0.05,
+        megaFoodWinChance: 0.02,
+        shockMegaWinCap: 0.06,
         timedSpeedupMs: 2500,
         timedSpeedupDelta: 8,
         timedSpeedupMinStep: 90,
+      },
+    },
+    effectMessages: {
+      megaAvoided: {
+        zh: "避开了警觉的威震天！+{score}",
+        en: "Dodged alert Megatron! +{score}",
+      },
+      shockFood: {
+        zh: "支开了震荡波！幸运率{chance}",
+        en: "Drew Shockwave away! Luck{chance}",
       },
     },
   },
@@ -91,6 +126,16 @@ window.gameConfig = {
         speedDelta: 20,
         minStep: 80,
         canvasFilter: "saturate(1.35) hue-rotate(12deg) brightness(1.08)",
+      },
+      shock: {
+        key: "energon",
+        src: "assets/images/energon.svg",
+        mapTile: 5,
+        score: 1,
+        segmentIcon: "robot",
+        speedDelta: 20,
+        minStep: 80,
+        canvasFilter: "saturate(1.6) hue-rotate(165deg) brightness(1.18)",
       },
       mega: {
         key: "mega-neutral",

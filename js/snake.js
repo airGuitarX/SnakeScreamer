@@ -427,7 +427,7 @@
       }
     },
 
-    showEffectPopup: function (index, message) {
+    showEffectPopup: function (index, message, variant) {
       var popup;
       var col;
       var row;
@@ -447,6 +447,9 @@
 
       popup = document.createElement("span");
       popup.className = "effect-popup";
+      if (variant) {
+        popup.classList.add("effect-popup-" + variant);
+      }
       popup.textContent = message;
       popup.style.left = x + "px";
       popup.style.top = y + "px";
@@ -490,9 +493,22 @@
     accumulated_time: 0,
     last_speedup_time: 0,
     time_step: assets.START_TIME_STEP,
+    megaFoodWinChance: assets.MEGA_FOOD_WIN_CHANCE,
 
     getFoodDef: function (type) {
       return assets.FOOD[type] || assets.FOOD.normal;
+    },
+
+    effectMessage: function (key, values) {
+      var messages = assets.EFFECT_MESSAGES[key] || {};
+      var lang = document.documentElement.lang === "en" ? "en" : "zh";
+      var message = messages[lang] || messages.en || messages.zh || key;
+
+      Object.keys(values || {}).forEach(function (name) {
+        message = message.replace("{" + name + "}", values[name]);
+      });
+
+      return message;
     },
 
     randomBodyIcon: function () {
@@ -509,6 +525,10 @@
       var roll = Math.random();
 
       if (assets.MEGA_MODE) {
+        if (roll < assets.SHOCK_FOOD_CHANCE) {
+          return "shock";
+        }
+
         return "mega";
       }
 
@@ -516,7 +536,14 @@
         return "mega";
       }
 
-      if (roll < assets.MEGA_FOOD_CHANCE + assets.SPEED_FOOD_CHANCE) {
+      if (roll < assets.MEGA_FOOD_CHANCE + assets.SHOCK_FOOD_CHANCE) {
+        return "shock";
+      }
+
+      if (
+        roll <
+        assets.MEGA_FOOD_CHANCE + assets.SHOCK_FOOD_CHANCE + assets.SPEED_FOOD_CHANCE
+      ) {
         return "speed";
       }
 
@@ -543,7 +570,7 @@
       this.food.type = type;
       this.food.index = index;
       this.food.isWin =
-        type === "mega" && Math.random() < assets.MEGA_FOOD_WIN_CHANCE;
+        type === "mega" && Math.random() < this.megaFoodWinChance;
       this.food.revealed = false;
       this.food.revealedAt = 0;
       this.food.clearing = false;
@@ -656,13 +683,13 @@
     clearMegaFood: function (now) {
       var clearedIndex = this.food.index;
       var clearedType = this.food.type;
-      var earnedScore = this.getFoodDef(clearedType).score;
-      var message = window.i18n
-        ? window.i18n.t("megaAvoided").replace("{score}", earnedScore)
-        : "Avoided +" + earnedScore;
+      var def = this.getFoodDef(clearedType);
+      var earnedScore = def.score;
+      var message = this.effectMessage("megaAvoided", { score: earnedScore });
 
       this.awardFoodScore(clearedType);
-      display.showEffectPopup(clearedIndex, message);
+      this.time_step = Math.max(def.minStep, this.time_step - def.speedDelta);
+      display.showEffectPopup(clearedIndex, message, "mega");
       this.food.index = -1;
       this.food.revealed = false;
       this.food.revealedAt = 0;
@@ -677,8 +704,25 @@
     applyFoodEffect: function (type) {
       var def = this.getFoodDef(type);
       this.awardFoodScore(type);
+      if (type === "shock") {
+        this.applyShockFoodEffect();
+      }
       this.time_step = Math.max(def.minStep, this.time_step - def.speedDelta);
       return this.randomBodyIcon();
+    },
+
+    applyShockFoodEffect: function () {
+      this.megaFoodWinChance = Math.min(
+        assets.SHOCK_MEGA_WIN_CAP,
+        this.megaFoodWinChance + assets.SHOCK_MEGA_WIN_BONUS
+      );
+      display.showEffectPopup(
+        this.food.index,
+        this.effectMessage("shockFood", {
+          chance: "+" + Math.round(assets.SHOCK_MEGA_WIN_BONUS * 100) + "%",
+        }),
+        "shock"
+      );
     },
 
     awardFoodScore: function (type) {
@@ -705,6 +749,7 @@
       this.world.map[this.snake.segment_indices[1]] = display.segment;
 
       this.time_step = assets.START_TIME_STEP;
+      this.megaFoodWinChance = assets.MEGA_FOOD_WIN_CHANCE;
       this.last_speedup_time = performance.now();
       this.spawnFood();
       this.loop();
