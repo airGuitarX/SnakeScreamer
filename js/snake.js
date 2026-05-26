@@ -141,6 +141,20 @@
     left: false,
     right: false,
     up: false,
+    touchStartX: 0,
+    touchStartY: 0,
+
+    setDirectionName: function (direction) {
+      if (direction === "up") {
+        game.setDirection(0, -1);
+      } else if (direction === "down") {
+        game.setDirection(0, 1);
+      } else if (direction === "left") {
+        game.setDirection(-1, 0);
+      } else if (direction === "right") {
+        game.setDirection(1, 0);
+      }
+    },
 
     keyUpDown: function (event) {
       var key_state = event.type == "keydown";
@@ -163,6 +177,41 @@
           controller.down = key_state;
           break;
       }
+    },
+
+    bindTouchControls: function () {
+      document.querySelectorAll("[data-direction]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          controller.setDirectionName(button.getAttribute("data-direction"));
+        });
+
+        button.addEventListener("pointerdown", function (event) {
+          event.preventDefault();
+          controller.setDirectionName(button.getAttribute("data-direction"));
+        });
+      });
+
+      display.context.canvas.addEventListener("pointerdown", function (event) {
+        controller.touchStartX = event.clientX;
+        controller.touchStartY = event.clientY;
+      });
+
+      display.context.canvas.addEventListener("pointerup", function (event) {
+        var dx = event.clientX - controller.touchStartX;
+        var dy = event.clientY - controller.touchStartY;
+        var absX = Math.abs(dx);
+        var absY = Math.abs(dy);
+
+        if (Math.max(absX, absY) < 24) {
+          return;
+        }
+
+        if (absX > absY) {
+          controller.setDirectionName(dx > 0 ? "right" : "left");
+        } else {
+          controller.setDirectionName(dy > 0 ? "down" : "up");
+        }
+      });
     },
   };
 
@@ -446,6 +495,16 @@
       return assets.FOOD[type] || assets.FOOD.normal;
     },
 
+    randomBodyIcon: function () {
+      var icons = assets.SNAKE_BODY_ICONS;
+
+      if (!icons || !icons.length) {
+        return assets.SNAKE_ICON;
+      }
+
+      return icons[Math.floor(Math.random() * icons.length)];
+    },
+
     chooseFoodType: function () {
       var roll = Math.random();
 
@@ -619,7 +678,7 @@
       var def = this.getFoodDef(type);
       this.awardFoodScore(type);
       this.time_step = Math.max(def.minStep, this.time_step - def.speedDelta);
-      return def.segmentIcon;
+      return this.randomBodyIcon();
     },
 
     awardFoodScore: function (type) {
@@ -637,7 +696,7 @@
       }
 
       this.snake.segment_indices = [START_HEAD, START_TAIL];
-      this.snake.segment_icons = [assets.SNAKE_ICON, assets.SNAKE_ICON];
+      this.snake.segment_icons = [assets.SNAKE_HEAD_ICON, this.randomBodyIcon()];
       this.snake.head_index = START_HEAD;
       this.snake.vector_x = this.snake.vector_y = 0;
 
@@ -692,7 +751,10 @@
 
           game.world.map[game.snake.head_index] = display.segment;
           game.snake.segment_indices.unshift(game.snake.head_index);
-          game.snake.segment_icons.unshift(assets.SNAKE_ICON);
+          game.snake.segment_icons.unshift(assets.SNAKE_HEAD_ICON);
+          if (game.snake.segment_icons.length > 1) {
+            game.snake.segment_icons[1] = game.randomBodyIcon();
+          }
 
           if (game.food.index >= 0 && game.snake.head_index == game.food.index) {
             var eatenType = game.food.type;
@@ -861,6 +923,7 @@
     document.getElementById("win-play-again").addEventListener("click", function () {
       game.reset();
     });
+    controller.bindTouchControls();
 
     game.reset();
     display.resize();

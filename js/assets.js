@@ -14,6 +14,8 @@
   }
 
   registerIcon(config.icons.snake);
+  registerIcon(config.icons.snake.head);
+  (config.icons.snake.body || []).forEach(registerIcon);
   Object.keys(config.icons.foods).forEach(function (type) {
     var food = config.icons.foods[type];
     registerIcon(food);
@@ -93,6 +95,12 @@
     FOOD: config.icons.foods,
     SCREENS: config.icons.screens,
     SNAKE_ICON: config.icons.snake.key,
+    SNAKE_HEAD_ICON:
+      (config.icons.snake.head && config.icons.snake.head.key) ||
+      config.icons.snake.key,
+    SNAKE_BODY_ICONS: (config.icons.snake.body || []).map(function (entry) {
+      return entry.key;
+    }).filter(Boolean),
     images: images,
     get ready() {
       return ready;

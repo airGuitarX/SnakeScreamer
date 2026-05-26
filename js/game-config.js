@@ -50,10 +50,24 @@ window.gameConfig = {
   /*
    * Icons — paths are relative to site root (where index.html lives).
    * To swap art: change `src` (and `key` if you add a new file).
-   * Keep `segmentIcon` equal to `icons.snake.key` for new body segments.
+   * The head always uses `snake.head`; body sections are picked from `snake.body`.
    */
   icons: {
     snake: {
+      head: {
+        key: "robot-head",
+        src: "assets/images/test_robot.svg",
+      },
+      body: [
+        {
+          key: "robot-body1",
+          src: "assets/images/food-normal.svg",
+        },
+        {
+          key: "robot-body2",
+          src: "assets/images/food-speed.svg",
+        }
+      ],
       key: "robot",
       src: "assets/images/test_robot.svg",
     },
